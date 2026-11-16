@@ -2,7 +2,7 @@ Forbidden Formulas
 
 A horror-themed escape room game for revising pharmaceutical solutions (Pharmaceutics I, Lectures 1 to 3).
 
-Play: https://forbidden-formulas.pages.dev/
+Play: (https://haneen-ibrahimm.github.io/forbidden_formulas/)
 
 About
 
