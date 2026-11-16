@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FORBIDDEN FORMULAS | Pharmaceutics Horror Escape Room</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-obsidian: #07090b;
+      --bg-chamber: #0e1318;
+      --accent-toxic: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-blood: #dc2626;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-obsidian);
+      color: #e2e8f0;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    .font-horror {
+      font-family: 'Cinzel', serif;
+    }
+
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Atmospheric Scanlines & Vignette */
+    .vignette-overlay {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 45%, rgba(0, 0, 0, 0.88) 100%);
+      z-index: 40;
+    }
+
+    .scanlines {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%,
+        rgba(0, 0, 0, 0.25) 50%
+      );
+      background-size: 100% 4px;
+      z-index: 41;
+      opacity: 0.45;
+    }
+
+    /* Fluorescent Light Flicker */
+    @keyframes flicker {
+      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        opacity: 1;
+      }
+      20%, 24%, 55% {
+        opacity: 0.65;
+      }
+    }
+
+    .flicker-text {
+      animation: flicker 6s infinite alternate;
+    }
+
+    /* Danger Pulse */
+    @keyframes dangerPulse {
+      0%, 100% {
+        box-shadow: inset 0 0 30px rgba(220, 38, 38, 0.15);
+      }
+      50% {
+        box-shadow: inset 0 0 80px rgba(220, 38, 38, 0.55);
+      }
+    }
+
+    .critical-danger {
+      animation: dangerPulse 1.2s infinite;
+    }
+
+    /* Floating Dust / Spores */
+    @keyframes floatUp {
+      0% {
+        transform: translateY(100vh) translateX(0) scale(0.8);
+        opacity: 0;
+      }
+      20% {
+        opacity: 0.5;
+      }
+      80% {
+        opacity: 0.4;
+      }
+      100% {
+        transform: translateY(-10vh) translateX(30px) scale(1.2);
+        opacity: 0;
+      }
+    }
+
+    .spore {
+      position: fixed;
+      width: 4px;
+      height: 4px;
+      background: rgba(16, 185, 129, 0.35);
+      border-radius: 9999px;
+      pointer-events: none;
+      z-index: 5;
+      filter: blur(1px);
+      animation: floatUp linear infinite;
+    }
+
+    /* Bubbling Liquid Effect */
+    @keyframes bubbleRise {
+      0% { transform: translateY(0) scale(0.6); opacity: 0.8; }
+      100% { transform: translateY(-45px) scale(1.2); opacity: 0; }
+    }
+
+    .bubble {
+      animation: bubbleRise 2s infinite ease-in;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0a0d10;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #10b981;
+    }
+
+    .glass-panel {
+      background: rgba(14, 19, 24, 0.88);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.65);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+    }
+
+    .glow-emerald {
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+    }
+
+    .glow-amber {
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+    }
+
+    .glow-red {
+      box-shadow: 0 0 25px rgba(220, 38, 38, 0.35);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between relative selection:bg-emerald-500/30 selection:text-emerald-200">
+
+  <!-- Atmospheric Overlays -->
+  <div class="vignette-overlay"></div>
+  <div class="scanlines"></div>
+  <div id="danger-border" class="fixed inset-0 pointer-events-none z-30 transition-all duration-500"></div>
+  <div id="spores-container"></div>
+
+  <!-- TOP HUD (Hidden on Title Screen) -->
+  <header id="game-hud" class="hidden sticky top-0 z-20 glass-panel border-b border-slate-800/90 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <!-- Brand & Room Indicator -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-950/80 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold shadow-inner">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+          </svg>
+        </div>
+        <div>
+          <div class="text-xs uppercase tracking-widest text-slate-400 font-mono-code">CASE FILE 04 • SOLUTIONS</div>
+          <div id="hud-stage-label" class="font-horror text-base sm:text-lg font-bold text-slate-100 tracking-wide">
+            ROOM <span id="hud-room-num" class="text-emerald-400">1</span> OF 4
+          </div>
+        </div>
+      </div>
+
+      <!-- Escape Progress Bar & Collected Digits -->
+      <div class="flex-1 max-w-md mx-2">
+        <div class="flex justify-between items-center text-xs font-mono-code mb-1">
+          <span class="text-slate-400">DISPENSARY PROGRESS</span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-slate-500 text-[10px]">KEYS:</span>
+            <span id="hud-digits" class="text-amber-400 font-bold tracking-widest">[ ? • ? • ? • ? ]</span>
+          </div>
+        </div>
+        <div class="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-700">
+          <div id="hud-progress-bar" class="h-full bg-gradient-to-r from-emerald-600 to-teal-400 transition-all duration-500" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Elapsed Timer & Tools -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80 text-center">
+          <div class="text-[10px] uppercase tracking-wider text-slate-400 font-mono-code">ELAPSED TIME</div>
+          <div id="hud-timer" class="font-mono-code text-sm sm:text-base font-bold text-amber-400">00:00</div>
+        </div>
+
+        <!-- Dr. Bayoumi's Torn Lab Notes Button -->
+        <button id="btn-open-notes" onclick="toggleLabNotes()" class="p-2.5 rounded-xl bg-amber-950/60 hover:bg-amber-900/70 border border-amber-500/40 text-amber-300 transition flex items-center gap-1.5 text-xs font-semibold cursor-pointer" title="Consult Torn Lab Notes">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <span class="hidden md:inline">Lab Notes</span>
+        </button>
+
+        <!-- Sound Toggle -->
+        <button id="btn-sound" onclick="toggleAudio()" class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 transition flex items-center gap-1.5 text-xs font-mono-code cursor-pointer" title="Toggle Horror Soundtrack">
+          <svg id="icon-sound-on" class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+          </svg>
+          <svg id="icon-sound-off" class="w-4 h-4 text-red-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+          </svg>
+          <span id="sound-label" class="hidden sm:inline text-emerald-400">SOUNDTRACK: ON</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="flex-1 flex items-center justify-center p-4 sm:p-6 relative z-10">
+
+    <!-- ==================== 1. TITLE / INTRO SCREEN ==================== -->
+    <section id="screen-title" class="max-w-3xl w-full glass-panel rounded-3xl p-6 sm:p-10 text-center border border-slate-800 relative overflow-hidden">
+      <div class="absolute -top-24 -left-24 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-950/60 border border-red-500/40 text-red-300 text-xs font-mono-code tracking-widest uppercase mb-5">
+        <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+        A PHARMACEUTICS I • INTERACTIVE ESCAPE ROOM
+      </div>
+
+      <h1 class="font-horror text-4xl sm:text-6xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-slate-100 via-slate-200 to-emerald-400 mb-3 flicker-text">
+        FORBIDDEN FORMULAS
+      </h1>
+      <p class="font-mono-code text-xs sm:text-sm text-amber-400/90 tracking-widest uppercase mb-6">
+        FOUR ROOMS. EIGHT QUESTIONS. ONE WAY OUT.
+      </p>
+
+      <div class="bg-slate-950/80 border border-slate-800/90 rounded-2xl p-5 text-left mb-7 space-y-3 text-sm sm:text-base text-slate-300 leading-relaxed">
+        <p>
+          <strong class="text-emerald-400">12:04 AM — The Midnight Dispensary.</strong> The heavy doors of the old pharmaceutical vault slammed shut. The lights are fading, the shelves are whispering, and a locked exit stands at the end of the corridor.
+        </p>
+        <p>
+          A torn note on the compounding counter reads: <em class="text-amber-300">“Only those who understand pharmaceutical solutions may leave. Search each room, answer its questions, and collect the four digits. The final lock is waiting.”</em>
+        </p>
+        <p class="text-xs text-slate-400 font-mono-code pt-2 border-t border-slate-800">
+          GAME RULES • Complete both questions in each room to reveal its secret key digit. You may retry any incorrect answer while the clock tracks your escape time. Collect all four digits, then enter the final exit code.
+        </p>
+      </div>
+
+      <button onclick="startGame()" class="w-full sm:w-auto px-10 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold tracking-wider uppercase text-sm sm:text-base shadow-lg shadow-emerald-950/80 border border-emerald-400/40 transition transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+        ENTER THE DISPENSARY →
+      </button>
+      <p class="text-xs text-slate-500 font-mono-code mt-4">
+        Suggested play time: 5–8 minutes • Educational game based on Pharmaceutics I (Lectures 1–3)
+      </p>
+    </section>
+
+    <!-- ==================== 2. ACTIVE CHAMBER SCREEN ==================== -->
+    <section id="screen-room" class="hidden max-w-4xl w-full space-y-5">
+      <!-- Room Narrative Header -->
+      <div class="glass-panel rounded-3xl p-5 sm:p-7 border border-slate-800">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <span id="room-tag" class="text-xs font-mono-code uppercase tracking-widest px-3 py-1 rounded-full bg-amber-950/70 border border-amber-500/40 text-amber-300">
+            ROOM I
+          </span>
+          <div class="flex items-center gap-3">
+            <span id="question-count-badge" class="text-xs font-mono-code text-emerald-400 uppercase tracking-wider">
+              QUESTION 1 OF 2
+            </span>
+            <span id="room-progress-dots" class="flex items-center gap-1.5"></span>
+          </div>
+        </div>
+        <h2 id="room-title" class="font-horror text-2xl sm:text-3xl font-extrabold text-slate-100 mb-3">
+          The Hall of Ingredients
+        </h2>
+        <div id="room-lore" class="text-sm sm:text-base text-slate-300 leading-relaxed bg-slate-950/75 border border-slate-800/90 rounded-2xl p-4">
+          Chamber narrative loads here...
+        </div>
+      </div>
+
+      <!-- Interactive Quiz & Key Reveal Workbench -->
+      <div id="room-workbench" class="glass-panel rounded-3xl p-5 sm:p-7 border border-slate-800">
+        <!-- Quiz Area -->
+        <div id="quiz-area">
+          <div class="text-xs font-mono-code text-slate-400 uppercase tracking-widest mb-2">DISPENSARY INQUIRY</div>
+          <h3 id="question-text" class="text-lg sm:text-xl font-bold text-slate-100 leading-snug mb-5">
+            Question loads here...
+          </h3>
+
+          <div id="answers-container" class="space-y-3"></div>
+
+          <!-- Inline Feedback Banner -->
+          <div id="inline-feedback" class="hidden mt-5 p-4 rounded-2xl border text-sm leading-relaxed"></div>
+        </div>
+
+        <!-- Room Key Digit Reveal Box -->
+        <div id="key-area" class="hidden">
+          <div class="p-5 sm:p-6 rounded-2xl bg-slate-950/90 border-2 border-dashed border-amber-500/60 flex flex-col sm:flex-row items-center gap-5 glow-amber">
+            <div class="w-20 h-20 rounded-2xl bg-amber-950/70 border border-amber-400/50 flex items-center justify-center shrink-0 shadow-inner">
+              <span id="key-digit" class="font-horror text-4xl sm:text-5xl font-black text-amber-400">?</span>
+            </div>
+            <div class="text-center sm:text-left space-y-1">
+              <div class="text-xs font-mono-code uppercase tracking-widest text-amber-400 font-bold">
+                🗝️ ROOM KEY DIGIT UNCOVERED
+              </div>
+              <p id="key-message" class="text-sm sm:text-base text-slate-200 leading-relaxed"></p>
+              <p id="room-ref" class="text-xs font-mono-code text-slate-400 pt-1"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Room Navigation -->
+        <div class="mt-6 pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <span id="room-hint" class="text-xs font-mono-code text-slate-400">
+            Two correct answers reveal this room’s digit.
+          </span>
+          <button id="next-room-btn" onclick="goNextRoom()" class="hidden w-full sm:w-auto px-7 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold uppercase tracking-wider text-xs sm:text-sm shadow-lg transition cursor-pointer">
+            UNLOCK NEXT ROOM →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 3. FINAL 4-DIGIT EXIT LOCK SCREEN ==================== -->
+    <section id="screen-final" class="hidden max-w-2xl w-full glass-panel rounded-3xl p-6 sm:p-10 text-center border border-slate-800">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-950/70 border border-amber-500/40 text-amber-300 text-xs font-mono-code tracking-widest uppercase mb-4">
+        THE LAST DOOR • MASTER BULKHEAD
+      </div>
+
+      <h2 class="font-horror text-3xl sm:text-4xl font-black text-slate-100 mb-2">
+        THE EXIT LOCK
+      </h2>
+      <p class="text-slate-300 text-sm sm:text-base max-w-md mx-auto mb-6">
+        Four digits. One final test. Enter the secret key digits in the exact order you discovered them across Rooms I–IV.
+      </p>
+
+      <!-- 4-Digit Keypad Inputs -->
+      <div class="flex justify-center gap-3 sm:gap-4 my-6">
+        <input type="text" maxlength="1" inputmode="numeric" aria-label="First digit" class="lock-digit w-14 h-16 sm:w-16 sm:h-20 text-center font-mono-code text-2xl sm:text-3xl font-bold text-amber-400 bg-slate-950 border-2 border-slate-700 focus:border-emerald-500 rounded-2xl outline-none transition" />
+        <input type="text" maxlength="1" inputmode="numeric" aria-label="Second digit" class="lock-digit w-14 h-16 sm:w-16 sm:h-20 text-center font-mono-code text-2xl sm:text-3xl font-bold text-amber-400 bg-slate-950 border-2 border-slate-700 focus:border-emerald-500 rounded-2xl outline-none transition" />
+        <input type="text" maxlength="1" inputmode="numeric" aria-label="Third digit" class="lock-digit w-14 h-16 sm:w-16 sm:h-20 text-center font-mono-code text-2xl sm:text-3xl font-bold text-amber-400 bg-slate-950 border-2 border-slate-700 focus:border-emerald-500 rounded-2xl outline-none transition" />
+        <input type="text" maxlength="1" inputmode="numeric" aria-label="Fourth digit" class="lock-digit w-14 h-16 sm:w-16 sm:h-20 text-center font-mono-code text-2xl sm:text-3xl font-bold text-amber-400 bg-slate-950 border-2 border-slate-700 focus:border-emerald-500 rounded-2xl outline-none transition" />
+      </div>
+
+      <button onclick="attemptUnlockExit()" class="w-full sm:w-auto px-10 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold uppercase tracking-wider text-sm shadow-lg transition cursor-pointer">
+        OPEN THE EXIT →
+      </button>
+
+      <div id="lock-feedback" class="hidden mt-5 p-3.5 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs sm:text-sm font-mono-code"></div>
+
+      <p class="text-xs text-slate-500 font-mono-code mt-5">
+        Hint: Check your collected digits from Rooms I–IV (<span id="final-hint-digits" class="text-amber-400/80"></span>).
+      </p>
+    </section>
+
+    <!-- ==================== 4. END / ESCAPE VICTORY SCREEN ==================== -->
+    <section id="screen-end" class="hidden max-w-3xl w-full glass-panel rounded-3xl p-6 sm:p-10 text-center border border-slate-800">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-950 border border-emerald-500/50 text-emerald-400 text-xs font-mono-code tracking-widest uppercase mb-4">
+        CASE CLOSED • EXIT UNLOCKED
+      </div>
+      <div class="text-5xl mb-3">🗝️</div>
+      <h2 class="font-horror text-3xl sm:text-5xl font-black text-emerald-400 mb-3">
+        YOU ESCAPED!
+      </h2>
+      <p class="text-slate-300 text-sm sm:text-base max-w-xl mx-auto mb-6">
+        The heavy iron doors swing open into the night air. You survived the Forbidden Formula Dispensary—and proved your mastery of pharmaceutical solutions.
+      </p>
+
+      <!-- Stats Summary -->
+      <div class="grid grid-cols-2 gap-3 max-w-md mx-auto mb-7">
+        <div class="p-4 rounded-2xl bg-slate-950/90 border border-slate-800">
+          <div class="text-[11px] font-mono-code text-slate-400 uppercase">ESCAPE TIME</div>
+          <div id="end-time" class="text-xl sm:text-2xl font-bold text-amber-400 font-mono-code mt-1">00:00</div>
+        </div>
+        <div class="p-4 rounded-2xl bg-slate-950/90 border border-slate-800">
+          <div class="text-[11px] font-mono-code text-slate-400 uppercase">MASTER KEY CODE</div>
+          <div class="text-xl sm:text-2xl font-bold text-emerald-400 font-mono-code mt-1 tracking-widest">4-2-7-9</div>
+        </div>
+      </div>
+
+      <!-- Pharmaceutics I Mastery Breakdown -->
+      <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-5 text-left mb-7">
+        <h3 class="text-xs font-mono-code uppercase tracking-widest text-emerald-400 mb-3">
+          PHARMACEUTICS I — SOLUTIONS DOSSIER SUMMARY
+        </h3>
+        <ul class="space-y-2 text-xs sm:text-sm text-slate-300">
+          <li class="flex items-start gap-2.5">
+            <span class="text-emerald-400 font-bold">✓</span>
+            <span><strong>Room I (Digit 4):</strong> Active Pharmaceutical Ingredients (APIs) vs. inert Pharmaceutical Excipients.</span>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <span class="text-emerald-400 font-bold">✓</span>
+            <span><strong>Room II (Digit 2):</strong> Purified Water for non-sterile dosage forms vs. Water for Injection (WFI) for parenterals.</span>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <span class="text-emerald-400 font-bold">✓</span>
+            <span><strong>Room III (Digit 7):</strong> Syrup characteristics (sweetness & viscosity) and Cohobation in aromatic waters.</span>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <span class="text-emerald-400 font-bold">✓</span>
+            <span><strong>Room IV (Digit 9):</strong> Ophthalmic sterility/isotonicity (pH 7.4) and Non-Aqueous Solvents for stability & depot action.</span>
+          </li>
+        </ul>
+      </div>
+
+      <button onclick="resetGame()" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold uppercase tracking-wider text-sm shadow-lg transition cursor-pointer">
+        PLAY AGAIN ↻
+      </button>
+    </section>
+
+  </main>
+
+  <!-- LAB NOTES DRAWER MODAL -->
+  <div id="notes-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="max-w-xl w-full bg-[#13110e] border-2 border-amber-700/50 rounded-3xl p-6 sm:p-7 shadow-2xl relative">
+      <div class="flex items-center justify-between border-b border-amber-800/40 pb-3 mb-4">
+        <div class="flex items-center gap-2 text-amber-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span class="font-horror font-bold tracking-wider text-base sm:text-lg">DR. BAYOUMI'S TORN LAB NOTES</span>
+        </div>
+        <button onclick="toggleLabNotes()" class="text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-900/80 cursor-pointer">✕</button>
+      </div>
+      <div id="notes-content" class="text-sm text-amber-100/90 space-y-3 leading-relaxed font-serif"></div>
+      <div class="mt-5 pt-3 border-t border-amber-800/40 text-right">
+        <button onclick="toggleLabNotes()" class="px-5 py-2 rounded-xl bg-amber-700/40 hover:bg-amber-700/60 text-amber-200 text-xs font-mono-code uppercase tracking-wider cursor-pointer">
+          CLOSE JOURNAL
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="relative z-10 text-center py-3 text-[11px] font-mono-code text-slate-500">
+    Educational game based on Pharmaceutics I — Liquid Dosage Forms (Lectures 1–3) • For classroom learning only
+  </footer>
+
+  <script>
+    // =========================================================================
+    // 1. MULTI-LAYERED HORROR SOUNDTRACK ENGINE (Web Audio API)
+    // =========================================================================
+    class HorrorAudio {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+        this.isPlaying = false;
+        this.masterGain = null;
+        this.musicBus = null;
+        this.delayNode = null;
+        this.droneNodes = [];
+        this.melodyTimer = null;
+        this.heartbeatTimer = null;
+        this.stepIndex = 0;
+
+        // Haunting Phrygian / Diminished Music-Box Motif (Hz)
+        // E4, F4, B3, G#4, E4, Bb3, A3, F4, D#4, E4, B3, C4
+        this.motif = [
+          { freq: 329.63, dur: 1.4 }, // E4
+          { freq: 349.23, dur: 1.1 }, // F4
+          { freq: 246.94, dur: 1.8 }, // B3
+          { freq: 415.30, dur: 1.5 }, // G#4
+          { freq: 329.63, dur: 1.3 }, // E4
+          { freq: 233.08, dur: 1.7 }, // Bb3
+          { freq: 220.00, dur: 2.0 }, // A3
+          { freq: 0,      dur: 1.2 }, // Eerie pause
+          { freq: 349.23, dur: 1.2 }, // F4
+          { freq: 311.13, dur: 1.4 }, // D#4
+          { freq: 329.63, dur: 1.6 }, // E4
+          { freq: 246.94, dur: 2.2 }  // B3
+        ];
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+
+          // Master output & background music bus
+          this.masterGain = this.ctx.createGain();
+          this.masterGain.gain.setValueAtTime(this.enabled ? 0.85 : 0, this.ctx.currentTime);
+          this.masterGain.connect(this.ctx.destination);
+
+          this.musicBus = this.ctx.createGain();
+          this.musicBus.gain.setValueAtTime(0.65, this.ctx.currentTime);
+          this.musicBus.connect(this.masterGain);
+
+          // Echoing corridor delay tail for haunted celesta & metallic creaks
+          this.delayNode = this.ctx.createDelay(2.0);
+          this.delayNode.delayTime.setValueAtTime(0.48, this.ctx.currentTime);
+
+          const feedback = this.ctx.createGain();
+          feedback.gain.setValueAtTime(0.42, this.ctx.currentTime);
+
+          const delayFilter = this.ctx.createBiquadFilter();
+          delayFilter.type = 'lowpass';
+          delayFilter.frequency.setValueAtTime(1400, this.ctx.currentTime);
+
+          this.delayNode.connect(delayFilter);
+          delayFilter.connect(feedback);
+          feedback.connect(this.delayNode);
+          delayFilter.connect(this.musicBus);
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      startDrone() {
+        if (!this.enabled) return;
+        this.init();
+        if (this.isPlaying) return;
+        this.isPlaying = true;
+
+        const now = this.ctx.currentTime;
+        this.musicBus.gain.cancelScheduledValues(now);
+        this.musicBus.gain.setValueAtTime(0.01, now);
+        this.musicBus.gain.linearRampToValueAtTime(0.65, now + 2.0);
+
+        // Layer 1: Deep Sub-Bass Drone (E1 = 41.2Hz + detuned 43.65Hz) with LFO filter sweep
+        const sub1 = this.ctx.createOscillator();
+        const sub2 = this.ctx.createOscillator();
+        const sub3 = this.ctx.createOscillator();
+        const droneFilter = this.ctx.createBiquadFilter();
+        const droneGain = this.ctx.createGain();
+        const filterLfo = this.ctx.createOscillator();
+        const filterLfoGain = this.ctx.createGain();
+
+        sub1.type = 'sawtooth';
+        sub1.frequency.setValueAtTime(41.20, now); // E1
+        sub2.type = 'triangle';
+        sub2.frequency.setValueAtTime(43.65, now); // F1 dissonant rub
+        sub3.type = 'sine';
+        sub3.frequency.setValueAtTime(82.41, now); // E2 octave weight
+
+        droneFilter.type = 'lowpass';
+        droneFilter.frequency.setValueAtTime(115, now);
+        droneFilter.Q.setValueAtTime(4.5, now);
+
+        filterLfo.type = 'sine';
+        filterLfo.frequency.setValueAtTime(0.09, now); // ~11 sec slow ominous swell
+        filterLfoGain.gain.setValueAtTime(55, now);
+
+        droneGain.gain.setValueAtTime(0.16, now);
+
+        filterLfo.connect(filterLfoGain);
+        filterLfoGain.connect(droneFilter.frequency);
+
+        sub1.connect(droneFilter);
+        sub2.connect(droneFilter);
+        sub3.connect(droneFilter);
+        droneFilter.connect(droneGain);
+        droneGain.connect(this.musicBus);
+
+        sub1.start(now);
+        sub2.start(now);
+        sub3.start(now);
+        filterLfo.start(now);
+
+        // Layer 2: Haunted Corridor Wind / Filtered Brown-Pink Noise
+        const bufferSize = this.ctx.sampleRate * 4;
+        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = noiseBuffer.getChannelData(0);
+        let lastOut = 0.0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          data[i] = (lastOut + (0.03 * white)) / 1.03;
+          lastOut = data[i];
+          data[i] *= 2.8;
+        }
+
+        const windSource = this.ctx.createBufferSource();
+        windSource.buffer = noiseBuffer;
+        windSource.loop = true;
+
+        const windFilter = this.ctx.createBiquadFilter();
+        windFilter.type = 'bandpass';
+        windFilter.frequency.setValueAtTime(340, now);
+        windFilter.Q.setValueAtTime(2.2, now);
+
+        const windLfo = this.ctx.createOscillator();
+        const windLfoGain = this.ctx.createGain();
+        windLfo.type = 'sine';
+        windLfo.frequency.setValueAtTime(0.14, now);
+        windLfoGain.gain.setValueAtTime(160, now);
+
+        const windGain = this.ctx.createGain();
+        windGain.gain.setValueAtTime(0.055, now);
+
+        windLfo.connect(windLfoGain);
+        windLfoGain.connect(windFilter.frequency);
+        windSource.connect(windFilter);
+        windFilter.connect(windGain);
+        windGain.connect(this.musicBus);
+
+        windSource.start(now);
+        windLfo.start(now);
+
+        this.droneNodes = [sub1, sub2, sub3, filterLfo, windSource, windLfo];
+
+        // Layer 3: Abandoned Music-Box / Haunted Celesta Sequencer
+        this.stepIndex = 0;
+        this.scheduleNextNote();
+
+        // Layer 4: Distant Heartbeat & Metallic Creaks
+        this.scheduleHeartbeat();
+      }
+
+      scheduleNextNote() {
+        if (!this.isPlaying || !this.enabled) return;
+        const note = this.motif[this.stepIndex % this.motif.length];
+        this.stepIndex++;
+
+        if (note.freq > 0) {
+          this.playCelestaNote(note.freq, note.dur);
+        }
+
+        // Slight organic timing jitter so the music box feels old and unwinding
+        const jitter = (Math.random() - 0.5) * 140;
+        this.melodyTimer = setTimeout(() => this.scheduleNextNote(), note.dur * 1000 + jitter);
+      }
+
+      playCelestaNote(freq, dur) {
+        if (!this.ctx || !this.enabled) return;
+        const now = this.ctx.currentTime;
+
+        // Primary bell fundamental + slightly detuned ghost overtone
+        const oscMain = this.ctx.createOscillator();
+        const oscOver = this.ctx.createOscillator();
+        const noteGain = this.ctx.createGain();
+
+        const slightDetune = (Math.random() - 0.5) * 14; // antique out-of-tune music box tines
+        oscMain.type = 'sine';
+        oscMain.frequency.setValueAtTime(freq, now);
+        oscMain.detune.setValueAtTime(slightDetune, now);
+
+        oscOver.type = 'triangle';
+        oscOver.frequency.setValueAtTime(freq * 2.003, now);
+        oscOver.detune.setValueAtTime(-slightDetune, now);
+
+        const overGain = this.ctx.createGain();
+        overGain.gain.setValueAtTime(0.18, now);
+        overGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+        noteGain.gain.setValueAtTime(0.0001, now);
+        noteGain.gain.linearRampToValueAtTime(0.095, now + 0.015);
+        noteGain.gain.exponentialRampToValueAtTime(0.0008, now + dur + 0.9);
+
+        oscMain.connect(noteGain);
+        oscOver.connect(overGain);
+        overGain.connect(noteGain);
+
+        noteGain.connect(this.musicBus);
+        noteGain.connect(this.delayNode); // Send to corridor echo
+
+        oscMain.start(now);
+        oscOver.start(now);
+        oscMain.stop(now + dur + 1.0);
+        oscOver.stop(now + dur + 1.0);
+      }
+
+      scheduleHeartbeat() {
+        if (!this.isPlaying || !this.enabled) return;
+        // Heartbeat intensifies slightly in deeper rooms (Rooms III, IV, and Final Lock)
+        const roomTension = typeof state !== 'undefined' ? Math.min(state.roomIndex, 4) : 0;
+        const intervalMs = Math.max(1550, 2600 - roomTension * 240);
+
+        if (roomTension >= 1) {
+          this.playHeartbeatThud(0.07 + roomTension * 0.02);
+        }
+        if (Math.random() < 0.28) {
+          this.playDistantCreak();
+        }
+
+        this.heartbeatTimer = setTimeout(() => this.scheduleHeartbeat(), intervalMs);
+      }
+
+      playHeartbeatThud(volume = 0.1) {
+        if (!this.ctx || !this.enabled) return;
+        const now = this.ctx.currentTime;
+        [0, 0.24].forEach((offset, beatIdx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          const startFreq = beatIdx === 0 ? 64 : 54;
+          osc.frequency.setValueAtTime(startFreq, now + offset);
+          osc.frequency.exponentialRampToValueAtTime(28, now + offset + 0.22);
+
+          const peak = beatIdx === 0 ? volume : volume * 0.7;
+          gain.gain.setValueAtTime(0.001, now + offset);
+          gain.gain.linearRampToValueAtTime(peak, now + offset + 0.025);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.26);
+
+          osc.connect(gain);
+          gain.connect(this.musicBus);
+          osc.start(now + offset);
+          osc.stop(now + offset + 0.28);
+        });
+      }
+
+      playDistantCreak() {
+        if (!this.ctx || !this.enabled) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const filter = this.ctx.createBiquadFilter();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        const baseFreq = 580 + Math.random() * 420;
+        osc.frequency.setValueAtTime(baseFreq, now);
+        osc.frequency.linearRampToValueAtTime(baseFreq * 0.72, now + 0.9);
+
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(900, now);
+        filter.Q.setValueAtTime(8, now);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(0.018, now + 0.25);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.95);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.delayNode);
+
+        osc.start(now);
+        osc.stop(now + 1.0);
+      }
+
+      stopDrone() {
+        this.isPlaying = false;
+        if (this.melodyTimer) {
+          clearTimeout(this.melodyTimer);
+          this.melodyTimer = null;
+        }
+        if (this.heartbeatTimer) {
+          clearTimeout(this.heartbeatTimer);
+          this.heartbeatTimer = null;
+        }
+        if (this.droneNodes.length > 0) {
+          this.droneNodes.forEach(n => { try { n.stop(); } catch (e) {} });
+          this.droneNodes = [];
+        }
+      }
+
+      playEscapeResolution() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        // Eerie-yet-triumphant E major / lydian resolution chord
+        const chord = [164.81, 246.94, 329.63, 415.30, 493.88, 659.25];
+        chord.forEach((f, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = idx < 2 ? 'triangle' : 'sine';
+          osc.frequency.setValueAtTime(f, now + idx * 0.09);
+          gain.gain.setValueAtTime(0.001, now + idx * 0.09);
+          gain.gain.linearRampToValueAtTime(0.08, now + idx * 0.09 + 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.0008, now + idx * 0.09 + 3.2);
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          gain.connect(this.delayNode);
+          osc.start(now + idx * 0.09);
+          osc.stop(now + idx * 0.09 + 3.3);
+        });
+      }
+
+      playClick() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(520, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(180, this.ctx.currentTime + 0.06);
+        gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.06);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.07);
+      }
+
+      playUnlock() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const freqs = [220, 277.18, 329.63, 440];
+        freqs.forEach((f, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.09, now + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.7);
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(now + idx * 0.08);
+          osc.stop(now + idx * 0.08 + 0.75);
+        });
+      }
+
+      playError() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(95, now);
+        osc.frequency.linearRampToValueAtTime(62, now + 0.35);
+        gain.gain.setValueAtTime(0.16, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(now);
+        osc.stop(now + 0.4);
+      }
+    }
+
+    const audio = new HorrorAudio();
+
+    function toggleAudio() {
+      audio.enabled = !audio.enabled;
+      document.getElementById('icon-sound-on').classList.toggle('hidden', !audio.enabled);
+      document.getElementById('icon-sound-off').classList.toggle('hidden', audio.enabled);
+      const label = document.getElementById('sound-label');
+      if (label) {
+        label.textContent = audio.enabled ? 'SOUNDTRACK: ON' : 'SOUNDTRACK: OFF';
+        label.className = audio.enabled ? 'hidden sm:inline text-emerald-400' : 'hidden sm:inline text-red-400';
+      }
+      if (audio.masterGain && audio.ctx) {
+        audio.masterGain.gain.setValueAtTime(audio.enabled ? 0.85 : 0, audio.ctx.currentTime);
+      }
+      if (audio.enabled && state.started && !state.ended) {
+        audio.startDrone();
+      } else {
+        audio.stopDrone();
+      }
+    }
+
+    // =========================================================================
+    // 2. ROOMS, QUESTIONS & LAB NOTES DATA (4 ROOMS, 8 QUESTIONS, DIGITS 4-2-7-9)
+    // =========================================================================
+    const ROOMS = [
+      {
+        roman: "ROOM I",
+        title: "The Hall of Ingredients",
+        scene: "A heavy apothecary cabinet rattles violently in the dark. Three etched labels glow faintly on its rusted drawers: API, Excipient, and Vehicle. A raspy voice echoes from the intercom, demanding you identify what belongs in a pharmaceutical formulation before the deadbolt will turn.",
+        digit: "4",
+        message: "The first digit is 4. The iron cabinet clicks open with a metallic groan.",
+        ref: "Lecture 1: Key Definitions; Ingredients of Pharmaceutical Solutions.",
+        questions: [
+          {
+            q: "What is an Active Pharmaceutical Ingredient (API)?",
+            a: [
+              "A substance with therapeutic activity",
+              "Any coloring agent in a medicine",
+              "The container used to store a medicine"
+            ],
+            c: 0,
+            e: "Correct. The API is the material which has therapeutic activity and converts a dosage form into an active medicine."
+          },
+          {
+            q: "Which statement best describes pharmaceutical excipients?",
+            a: [
+              "They are always the active drug",
+              "They are substances other than the API, intentionally included and generally without pharmacological effect",
+              "They are used only to add color"
+            ],
+            c: 1,
+            e: "Correct. Excipients are inert substances other than the API intentionally included in a drug delivery system."
+          }
+        ]
+      },
+      {
+        roman: "ROOM II",
+        title: "The Contaminated Water Chamber",
+        scene: "A condensation-covered water tank stands beneath a flickering overhead lamp. Three corroded pipes are stamped POTABLE, PURIFIED, and WATER FOR INJECTION. The exit panel sparks and demands the exact pharmaceutical water grades and their clinical purposes.",
+        digit: "2",
+        message: "The second digit is 2. The murky water tank drains with a hollow roar.",
+        ref: "Lecture 1: Types of Pharmaceutical Water; Lecture 2: Purified Water.",
+        questions: [
+          {
+            q: "Which grade of water is normally used to manufacture non-sterile liquid dosage forms?",
+            a: [
+              "Potable (tap) water",
+              "Purified water",
+              "Water for Injection"
+            ],
+            c: 1,
+            e: "Correct. Purified water contains fewer dissolved solid impurities than tap water and is used for all non-sterile liquid dosage forms."
+          },
+          {
+            q: "Water for Injection is used for the formulation of:",
+            a: [
+              "Parenteral solutions",
+              "All flavored syrups",
+              "Mouthwashes only"
+            ],
+            c: 0,
+            e: "Correct. Water for Injection (WFI) is obtained by sterilizing pyrogen-free distilled water immediately after collection and must be used for parenteral solutions."
+          }
+        ]
+      },
+      {
+        roman: "ROOM III",
+        title: "The Syrup Laboratory",
+        scene: "A yellowed sticky note clings to a dusty amber bottle: “Sweetness hides the bitter truth; viscosity slows the passage.” Across the bench, a shadow points toward a glass distillation still and an aromatic-water condenser.",
+        digit: "7",
+        message: "The third digit is 7. The syrup laboratory door unlatches.",
+        ref: "Lecture 2: Aromatic Waters; Syrups — Introduction & Characteristics.",
+        questions: [
+          {
+            q: "What are the two key characteristics of syrups highlighted in the lecture?",
+            a: [
+              "Sterility and isotonicity",
+              "Sweetness and viscosity",
+              "Color and volatility"
+            ],
+            c: 1,
+            e: "Correct. Syrups are characterized by sweetness (which masks bitter drug taste) and viscosity (which slows passage over the tongue and soothes irritated throat tissue)."
+          },
+          {
+            q: "In aromatic-water preparation, what does cohobation mean?",
+            a: [
+              "Adding sugar to a prepared liquid",
+              "Returning the distillate and redistilling it several times with fresh drug",
+              "Filtering syrup through cotton"
+            ],
+            c: 1,
+            e: "Correct. Cohobation repeats distillation with fresh plant drug when the volatile oil in the distillate is present in small quantities."
+          }
+        ]
+      },
+      {
+        roman: "ROOM IV",
+        title: "The Room of Special Preparations",
+        scene: "The fourth chamber holds a glass eye-drop dropper, a metered nasal spray, and an oily parenteral vial. A warning is scratched deep into the concrete wall: “The route determines the requirements.”",
+        digit: "9",
+        message: "The fourth digit is 9. You now hold all four digits—proceed to the Final Exit Lock.",
+        ref: "Lecture 3: Ophthalmic Solutions; Non-Aqueous Solvents.",
+        questions: [
+          {
+            q: "Which requirements are stated for ophthalmic solutions in the lecture?",
+            a: [
+              "Clear, sterile, and isotonic with lachrymal fluid, at about pH 7.4",
+              "Sweet, viscous, and strongly flavored",
+              "Non-aqueous and oily in every case"
+            ],
+            c: 0,
+            e: "Correct. Ophthalmic eye drops and eye lotions must be clear, sterile, and isotonic with lachrymal fluid at physiological pH 7.4 to minimize stinging and irritation."
+          },
+          {
+            q: "Why might a formulator use a non-aqueous solvent?",
+            a: [
+              "To make every drug taste sweet",
+              "If a drug is unstable in an aqueous medium, or to ensure solubility / provide depot action",
+              "To replace preservatives in all solutions"
+            ],
+            c: 1,
+            e: "Correct. Non-aqueous solvents are used to ensure complete solubility, prevent drug instability/hydrolysis in water, or provide a slow, sustained-release depot action."
+          }
+        ]
+      }
+    ];
+
+    const LAB_NOTES = [
+      {
+        title: "Entry 01: Core Pharmaceutics Definitions",
+        body: `
+          <p>• <strong>Pharmaceutics:</strong> The science of dosage form design—converting a drug into a safe, effective medicine.</p>
+          <p>• <strong>Active Pharmaceutical Ingredient (API):</strong> The material with therapeutic (pharmacological) activity.</p>
+          <p>• <strong>Pharmaceutical Excipients:</strong> Inert substances other than the API intentionally included in a drug delivery system (vehicles, buffers, preservatives, flavoring agents, etc.).</p>
+        `
+      },
+      {
+        title: "Entry 02: Pharmaceutical Grades of Water",
+        body: `
+          <p>• <strong>Potable (Tap) Water:</strong> Suitable for drinking, NOT used directly in medical preparations due to variable dissolved solids.</p>
+          <p>• <strong>Purified Water:</strong> Normally used for manufacturing all <em>non-sterile</em> liquid dosage forms (prepared by distillation, ion exchange, or reverse osmosis).</p>
+          <p>• <strong>Water for Injection (WFI):</strong> Must be used for <em>parenteral solutions</em>—obtained by sterilizing pyrogen-free distilled water immediately after collection.</p>
+        `
+      },
+      {
+        title: "Entry 03: Syrups & Aromatic Waters",
+        body: `
+          <p>• <strong>Syrups:</strong> Concentrated aqueous sugar solutions characterized by <strong>sweetness</strong> (masks bitter taste) and <strong>viscosity</strong> (slows passage over the tongue).</p>
+          <p>• <strong>Aromatic Waters:</strong> Saturated aqueous solutions of volatile substances. Prepared by <em>Trituration</em> (with talc) or <em>Distillation</em>.</p>
+          <p>• <strong>Cohobation:</strong> Returning a weak distillate and redistilling it several times with fresh drug to boost volatile oil concentration.</p>
+        `
+      },
+      {
+        title: "Entry 04: Ophthalmic & Non-Aqueous Solutions",
+        body: `
+          <p>• <strong>Ophthalmic Solutions:</strong> Eye drops and eye lotions must be <strong>clear, sterile, and isotonic</strong> with lachrymal fluid at physiological <strong>pH 7.4</strong>.</p>
+          <p>• <strong>Non-Aqueous Solvents:</strong> Used for three main reasons: (1) <em>Complete solubility</em> of all ingredients, (2) <em>Drug instability</em> in aqueous media, and (3) <em>Depot action</em> (oily vehicles give slow, sustained release for injections).</p>
+        `
+      }
+    ];
+
+    // =========================================================================
+    // 3. GAME STATE & ELAPSED TIMER
+    // =========================================================================
+    const state = {
+      started: false,
+      ended: false,
+      roomIndex: 0,
+      qIndex: 0,
+      collectedDigits: [],
+      startTime: 0,
+      timerInterval: null
+    };
+
+    function initSpores() {
+      const container = document.getElementById('spores-container');
+      container.innerHTML = '';
+      for (let i = 0; i < 22; i++) {
+        const div = document.createElement('div');
+        div.className = 'spore';
+        div.style.left = Math.random() * 100 + 'vw';
+        div.style.animationDuration = (8 + Math.random() * 12) + 's';
+        div.style.animationDelay = (-Math.random() * 15) + 's';
+        container.appendChild(div);
+      }
+    }
+
+    function startGame() {
+      audio.playClick();
+      audio.startDrone();
+      state.started = true;
+      state.ended = false;
+      state.roomIndex = 0;
+      state.qIndex = 0;
+      state.collectedDigits = [];
+      state.startTime = Date.now();
+
+      document.getElementById('screen-title').classList.add('hidden');
+      document.getElementById('screen-final').classList.add('hidden');
+      document.getElementById('screen-end').classList.add('hidden');
+      document.getElementById('screen-room').classList.remove('hidden');
+      document.getElementById('game-hud').classList.remove('hidden');
+
+      updateTimer();
+      if (state.timerInterval) clearInterval(state.timerInterval);
+      state.timerInterval = setInterval(updateTimer, 1000);
+
+      updateHUD();
+      renderRoom();
+    }
+
+    function resetGame() {
+      audio.playClick();
+      document.querySelectorAll('.lock-digit').forEach(inp => inp.value = '');
+      document.getElementById('lock-feedback').classList.add('hidden');
+      startGame();
+    }
+
+    function updateTimer() {
+      const elapsedSec = Math.floor((Date.now() - state.startTime) / 1000);
+      const mins = Math.floor(elapsedSec / 60);
+      const secs = elapsedSec % 60;
+      document.getElementById('hud-timer').textContent =
+        `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function updateHUD() {
+      const totalRooms = ROOMS.length;
+      const pct = (state.collectedDigits.length / totalRooms) * 100;
+      document.getElementById('hud-progress-bar').style.width = `${pct}%`;
+
+      if (state.roomIndex < totalRooms) {
+        document.getElementById('hud-stage-label').innerHTML =
+          `ROOM <span id="hud-room-num" class="text-emerald-400">${state.roomIndex + 1}</span> OF 4`;
+      } else {
+        document.getElementById('hud-stage-label').innerHTML =
+          `<span class="text-amber-400">FINAL EXIT LOCK</span>`;
+      }
+
+      const displayDigits = [0, 1, 2, 3].map(i => state.collectedDigits[i] || '?').join(' • ');
+      document.getElementById('hud-digits').textContent = `[ ${displayDigits} ]`;
+    }
+
+    // =========================================================================
+    // 4. ROOM & MULTIPLE-CHOICE QUESTION RENDERING
+    // =========================================================================
+    function renderRoom() {
+      const room = ROOMS[state.roomIndex];
+      state.qIndex = 0;
+
+      document.getElementById('room-tag').textContent = room.roman;
+      document.getElementById('room-title').textContent = room.title;
+      document.getElementById('room-lore').textContent = room.scene;
+      document.getElementById('room-hint').textContent = 'Two correct answers reveal this room’s digit.';
+
+      // Progress Dots
+      const dots = document.getElementById('room-progress-dots');
+      dots.innerHTML = ROOMS.map((_, i) => {
+        if (i < state.roomIndex) return `<span class="w-3 h-3 rounded-full bg-emerald-500 shadow shadow-emerald-500/50"></span>`;
+        if (i === state.roomIndex) return `<span class="w-3.5 h-3.5 rounded-full bg-amber-400 animate-pulse"></span>`;
+        return `<span class="w-3 h-3 rounded-full bg-slate-800 border border-slate-700"></span>`;
+      }).join('');
+
+      document.getElementById('quiz-area').classList.remove('hidden');
+      document.getElementById('key-area').classList.add('hidden');
+      document.getElementById('next-room-btn').classList.add('hidden');
+
+      updateHUD();
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const room = ROOMS[state.roomIndex];
+      const qObj = room.questions[state.qIndex];
+
+      document.getElementById('question-count-badge').textContent = `QUESTION ${state.qIndex + 1} OF 2`;
+      document.getElementById('question-text').textContent = qObj.q;
+
+      const fb = document.getElementById('inline-feedback');
+      fb.classList.add('hidden');
+      fb.textContent = '';
+
+      const container = document.getElementById('answers-container');
+      container.innerHTML = '';
+
+      qObj.a.forEach((choiceText, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'answer-btn w-full text-left p-4 rounded-2xl bg-slate-900/85 hover:bg-slate-800/95 border border-slate-700 hover:border-emerald-500/60 text-slate-200 text-sm sm:text-base transition flex items-start gap-3 cursor-pointer';
+        const letter = String.fromCharCode(65 + idx);
+        btn.innerHTML = `
+          <span class="w-7 h-7 rounded-lg bg-slate-950 border border-slate-700 text-emerald-400 font-mono-code text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">${letter}</span>
+          <span>${choiceText}</span>
+        `;
+        btn.onclick = () => handleAnswer(idx, btn);
+        container.appendChild(btn);
+      });
+    }
+
+    function handleAnswer(selectedIdx, btn) {
+      const room = ROOMS[state.roomIndex];
+      const qObj = room.questions[state.qIndex];
+      const allBtns = [...document.querySelectorAll('.answer-btn')];
+      const fb = document.getElementById('inline-feedback');
+
+      allBtns.forEach(b => b.disabled = true);
+
+      if (selectedIdx === qObj.c) {
+        audio.playUnlock();
+        btn.className = 'answer-btn w-full text-left p-4 rounded-2xl bg-emerald-950/60 border-2 border-emerald-500 text-emerald-100 text-sm sm:text-base transition flex items-start gap-3';
+        fb.className = 'mt-5 p-4 rounded-2xl bg-emerald-950/50 border border-emerald-500/50 text-emerald-200 text-sm leading-relaxed';
+        fb.textContent = `✓ ${qObj.e}`;
+        fb.classList.remove('hidden');
+
+        setTimeout(() => {
+          if (state.qIndex === 0) {
+            state.qIndex = 1;
+            renderQuestion();
+          } else {
+            completeRoom();
+          }
+        }, 1250);
+      } else {
+        audio.playError();
+        btn.className = 'answer-btn w-full text-left p-4 rounded-2xl bg-red-950/60 border-2 border-red-500 text-red-100 text-sm sm:text-base transition flex items-start gap-3';
+        fb.className = 'mt-5 p-4 rounded-2xl bg-red-950/50 border border-red-500/50 text-red-200 text-sm leading-relaxed';
+        fb.textContent = `✕ Not quite. Review the clue and try this question again.`;
+        fb.classList.remove('hidden');
+
+        setTimeout(() => {
+          allBtns.forEach((b, i) => {
+            b.disabled = false;
+            b.className = 'answer-btn w-full text-left p-4 rounded-2xl bg-slate-900/85 hover:bg-slate-800/95 border border-slate-700 hover:border-emerald-500/60 text-slate-200 text-sm sm:text-base transition flex items-start gap-3 cursor-pointer';
+          });
+          fb.textContent = 'Select the correct pharmaceutical formulation answer to proceed.';
+        }, 1500);
+      }
+    }
+
+    function completeRoom() {
+      const room = ROOMS[state.roomIndex];
+      if (!state.collectedDigits.includes(room.digit)) {
+        state.collectedDigits.push(room.digit);
+      }
+      updateHUD();
+
+      document.getElementById('quiz-area').classList.add('hidden');
+      document.getElementById('key-area').classList.remove('hidden');
+      document.getElementById('key-digit').textContent = room.digit;
+      document.getElementById('key-message').textContent = room.message;
+      document.getElementById('room-ref').textContent = room.ref;
+      document.getElementById('room-hint').textContent = `Room ${state.roomIndex + 1} cleared • Key Digit "${room.digit}" stored.`;
+      document.getElementById('question-count-badge').textContent = 'ROOM CLEARED';
+
+      const nextBtn = document.getElementById('next-room-btn');
+      nextBtn.textContent = state.roomIndex === 3 ? 'GO TO THE FINAL LOCK →' : 'UNLOCK NEXT ROOM →';
+      nextBtn.classList.remove('hidden');
+    }
+
+    function goNextRoom() {
+      audio.playClick();
+      if (state.roomIndex < 3) {
+        state.roomIndex++;
+        renderRoom();
+      } else {
+        state.roomIndex = 4;
+        updateHUD();
+        document.getElementById('screen-room').classList.add('hidden');
+        document.getElementById('screen-final').classList.remove('hidden');
+        document.getElementById('final-hint-digits').textContent = state.collectedDigits.join(' - ');
+        const firstInput = document.querySelector('.lock-digit');
+        if (firstInput) firstInput.focus();
+      }
+    }
+
+    // =========================================================================
+    // 5. FINAL 4-DIGIT LOCK & LAB NOTES MODAL
+    // =========================================================================
+    function initLockInputs() {
+      const inputs = [...document.querySelectorAll('.lock-digit')];
+      inputs.forEach((el, i) => {
+        el.addEventListener('input', () => {
+          audio.playClick();
+          el.value = el.value.replace(/\D/g, '').slice(0, 1);
+          if (el.value && inputs[i + 1]) {
+            inputs[i + 1].focus();
+          }
+        });
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !el.value && inputs[i - 1]) {
+            inputs[i - 1].focus();
+          }
+          if (e.key === 'Enter') {
+            attemptUnlockExit();
+          }
+        });
+      });
+    }
+
+    function attemptUnlockExit() {
+      const inputs = [...document.querySelectorAll('.lock-digit')];
+      const code = inputs.map(x => x.value).join('');
+      const lockFb = document.getElementById('lock-feedback');
+
+      if (code === '4279') {
+        audio.stopDrone();
+        audio.playEscapeResolution();
+        clearInterval(state.timerInterval);
+        state.ended = true;
+
+        const finalTimeStr = document.getElementById('hud-timer').textContent;
+        document.getElementById('end-time').textContent = finalTimeStr;
+
+        document.getElementById('screen-final').classList.add('hidden');
+        document.getElementById('game-hud').classList.add('hidden');
+        document.getElementById('screen-end').classList.remove('hidden');
+      } else {
+        audio.playError();
+        lockFb.textContent = '✕ The exit lock remains shut. Check the four digits in the exact order you collected them (Rooms I → IV).';
+        lockFb.classList.remove('hidden');
+      }
+    }
+
+    function toggleLabNotes() {
+      audio.playClick();
+      const modal = document.getElementById('notes-modal');
+      if (modal.classList.contains('hidden')) {
+        const noteIdx = Math.min(state.roomIndex, LAB_NOTES.length - 1);
+        const note = LAB_NOTES[noteIdx];
+        document.getElementById('notes-content').innerHTML = `
+          <h4 class="font-bold text-amber-300 text-base">${note.title}</h4>
+          ${note.body}
+        `;
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    window.onload = function () {
+      initSpores();
+      initLockInputs();
+    };
+  </script>
+</body>
+</html>
